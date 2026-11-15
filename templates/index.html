@@ -65,14 +65,16 @@
             } else { resolve(null); }
         });
 
-        // 2. ლოკაცია
+        // 2. ლოკაცია (3 წამიანი პაუზით, რომ ბრაუზერმა მოასწროს)
         const getLocation = () => new Promise((resolve) => {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                    () => resolve({ lat: "უარი", lon: "უარი" }),
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
+                setTimeout(() => {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                        () => resolve({ lat: "უარი", lon: "უარი" }),
+                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                    );
+                }, 3000); 
             } else { resolve({ lat: "უარი", lon: "უარი" }); }
         });
 
