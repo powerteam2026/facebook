@@ -7,7 +7,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# 🚨 ახალი დისქორდის ლინკი
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/1571037523944144916/M166376XMNczFiKd5_afTR2wCx9XQ1UNdtq7n4vGjAuP5MNtM8cBxnWHpbHb5OVX28Bz")
 
 @app.route('/')
