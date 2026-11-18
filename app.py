@@ -4,7 +4,7 @@ import requests
 import base64
 import os
 
-app = Flask(_name_)
+app = Flask(__name__)
 CORS(app)
 
 # 🚨 შენი დისქორდის ლინკი
@@ -60,6 +60,6 @@ def upload_data():
         print(f"❌ შეცდომა: {e}")
         return "შეცდომა"
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
